@@ -1,8 +1,9 @@
-import * as TE from 'fp-ts/lib/TaskEither.js'
-import * as RTE from 'fp-ts/lib/ReaderTaskEither.js'
-import * as t from 'io-ts'
-import * as E from 'fp-ts/lib/Either.js'
-import { pipe } from 'fp-ts/lib/function.js'
+import * as TE from 'fp-ts/lib/TaskEither.js';
+import * as RTE from 'fp-ts/lib/ReaderTaskEither.js';
+import * as t from 'io-ts';
+import * as E from 'fp-ts/lib/Either.js';
+import { pipe } from 'fp-ts/lib/function.js';
+import { setTimeout } from 'node:timers/promises';
 
 /**
  * Codecs
@@ -10,12 +11,12 @@ import { pipe } from 'fp-ts/lib/function.js'
 const planetCodec = t.strict({
     name: t.string,
     residents: t.array(t.string),
-})
+});
 
 const personCodec = t.strict({
     name: t.string,
     mass: t.string,
-})
+});
 
 /**
  * Has pattern
@@ -25,13 +26,13 @@ const personCodec = t.strict({
 interface HasGetStarWarsPlanetEff {
     readonly getStarWarsPlanetEff: (
         planetId: number
-    ) => TE.TaskEither<Error, void>
+    ) => TE.TaskEither<Error, void>;
 }
 
 interface HasGetStarWarsPersonEff {
     readonly getStarWarsPersonEff: (
         planetId: number
-    ) => TE.TaskEither<Error, void>
+    ) => TE.TaskEither<Error, void>;
 }
 
 /**
@@ -45,14 +46,14 @@ const getPlanet =
         planetId: number
     ): RTE.ReaderTaskEither<HasGetStarWarsPlanetEff, Error, void> =>
     (r) =>
-        r.getStarWarsPlanetEff(planetId)
+        r.getStarWarsPlanetEff(planetId);
 
 const getPerson =
     (
         personId: number
     ): RTE.ReaderTaskEither<HasGetStarWarsPersonEff, Error, void> =>
     (r) =>
-        r.getStarWarsPersonEff(personId)
+        r.getStarWarsPersonEff(personId);
 
 /**
  * The function that makes the effect
@@ -65,25 +66,26 @@ const mkGetStarWarsPlanetEff =
     (planetId) =>
         TE.tryCatch(
             async () => {
-                const rsp = await fetch(`${url}/planets/${planetId}`)
-                const decoded: unknown = await rsp.json()
-                console.log('Raw Object', { decoded })
+                const rsp = await fetch(`${url}/planets/${planetId}`);
+                const decoded: unknown = await rsp.json();
+                await setTimeout(5000);
+                console.log('Raw Object', { decoded });
                 return pipe(
                     planetCodec.decode(decoded),
                     (x) => x,
                     E.match(
                         () => {
-                            throw new Error('Decode error')
+                            throw new Error('Decode error');
                         },
                         (x) => console.log({ planet: x })
                     )
-                )
+                );
             },
             (err) => {
-                console.error('[mkGetStarWarsPlanetEff]', err)
-                return new Error()
+                console.error('[mkGetStarWarsPlanetEff]', err);
+                return new Error();
             }
-        )
+        );
 
 const mkGetStarWarsPersonEff =
     (url: string): HasGetStarWarsPersonEff['getStarWarsPersonEff'] =>
@@ -91,65 +93,66 @@ const mkGetStarWarsPersonEff =
         pipe(
             TE.tryCatch(
                 async () => {
-                    console.log('running person')
-                    const rsp = await fetch(`${url}/people/${personId}`)
-                    const decoded: unknown = await rsp.json()
-                    console.log('Raw Object', { decoded })
+                    console.log('running person');
+                    const rsp = await fetch(`${url}/people/${personId}`);
+                    const decoded: unknown = await rsp.json();
+                    console.log('Raw Object', { decoded });
                     return pipe(
                         personCodec.decode(decoded),
                         E.match(
                             () => {
-                                throw new Error('Decode error')
+                                throw new Error('Decode error');
                             },
                             (x) => console.log({ planet: x })
                         )
-                    )
+                    );
                 },
                 (err) => {
-                    console.error('[mkGetStarWarsPersonEff]', err)
-                    return new Error()
+                    console.error('[mkGetStarWarsPersonEff]', err);
+                    return new Error();
                 }
             )
-        )
+        );
 
 /**
  * The interface located in the lambda files
  * used to type all the effects that should be included
  * These effects will be called by the composed RTE's whenever this env variable is passed in
  */
-const swapiApi = 'https://swapi.dev/api/'
+const swapiApi = 'https://swapi.info/api/';
 interface Env extends HasGetStarWarsPlanetEff, HasGetStarWarsPersonEff {}
 
 const env: Env = {
     getStarWarsPlanetEff: mkGetStarWarsPlanetEff(swapiApi),
     getStarWarsPersonEff: mkGetStarWarsPersonEff(swapiApi),
-}
+};
 
 /**
  * Program which takes an input composes all the RTE's into one RTE
  * RTE is used in the handler
+ * In lambdas the paramter is usually the aws event, which is decoded immediately in the pipe
  */
 
 const program = ({
     planetId,
     personId,
 }: {
-    planetId: number
-    personId: number
+    planetId: number;
+    personId: number;
 }): RTE.ReaderTaskEither<Env, Error, void> =>
     pipe(
         getPlanet(planetId),
         RTE.flatMap(() => getPerson(personId))
-    )
+    );
 
 /**
  * Handler which calls the program with the env
  * will usually be called with an AWSlambda event param
  * which contains all the information needed for the lambda e.g. user credentials payload etc.
  */
-const handler = () => pipe({ planetId: 15, personId: 50 }, program)(env)()
+const handler = () => pipe({ planetId: 15, personId: 50 }, program)(env)();
 
 /**
  * Whenever a lambda is called it is ran like so
  */
-handler()
+handler();

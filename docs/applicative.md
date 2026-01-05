@@ -1,7 +1,7 @@
 # Applicative
 
 ```
-ap: <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
+ap: <C, D>(f: HKT<F, (c: C) => D>) => (fc: HKT<F, C>) => HKT<F, D>
 
 ```
 

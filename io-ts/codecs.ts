@@ -74,6 +74,7 @@ const StringFromNumber = new t.Type<number, string, any>(
  *   - converts a variable of type { age: number, username: Option<Branded Username> } into { age: number, username: Branded Username }
  */
 
+//rand
 const complexCodec2 = tt.fromNullable(
     t.strict({
         age: tt.fromNullable(StringFromNumber, 0),

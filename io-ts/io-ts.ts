@@ -108,7 +108,8 @@ const number: unknown = '45';
  */
 const NumberToUser = new t.Type<number, User, unknown>(
     'NumberToUser',
-    (u): u is number => typeof u === 'number', // is
+    (u): u is number => typeof u === 'number', //
+    // t.number.is, (can be used to replace the above line, use the codec of what the value should decode into)
     (u, c) =>
         typeof u === 'number'
             ? t.success(u) // valid → return number as-is

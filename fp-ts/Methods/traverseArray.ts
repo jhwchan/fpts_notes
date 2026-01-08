@@ -1,6 +1,8 @@
 import * as TE from 'fp-ts/lib/TaskEither.js';
-import { nameCodec } from '../RTE/readerTaskEither.js';
+import { nameCodec, type CharacterName } from '../RTE/readerTaskEither.js';
 import { pipe } from 'fp-ts/lib/function.js';
+import * as E from 'fp-ts/lib/Either.js';
+import 'dotenv/config';
 
 /**
  * Traverse array maps over an array of items sequentially converting them into the specified type class
@@ -11,35 +13,37 @@ import { pipe } from 'fp-ts/lib/function.js';
  * (a:A => TE<Error,B>)=>(a:Array<A>)=>TE<Error,Array<B>>
  */
 
-const api = 'https://swapi.dev/api/asd';
-
 const array1 = [15, 1, 2, 3];
 
-const traverseArrayEff = TE.traverseSeqArray<number, { name: string }, Error>(
+const traverseArrayEff = TE.traverseSeqArray<number, CharacterName, Error>(
     (num: number) => {
-        return TE.tryCatch(
-            async () => {
-                const raw = await fetch(`${api}/people/${num}`);
-                const decoded = await raw.json();
-                console.log('Raw decode success');
-                // const nameObj = nameCodec.decode(decoded)
-                // if (E.isRight(nameObj)) {
-                //     console.log('Logging from each call')
-                //     console.log({ name: nameObj.right.name })
-                //     return nameObj.right.name
-                // } else {
-                //     throw new Error('Decode error')
-                // }
-                return pipe(nameCodec.decode(decoded), TE.fromEither);
-            },
-            (err) => {
-                console.error('[traverseArray]', err);
-                return new Error('Unable to get item');
-            }
+        // piping into a flatMap so both fetch error and decode error can be properly recorded
+        return pipe(
+            TE.tryCatch(
+                async () => {
+                    const raw = await fetch(
+                        `${process.env.SWAPI_API}/people/${num}`
+                    );
+                    const decoded = await raw.json();
+                    console.log('Raw decode success');
+                    return decoded;
+                },
+                (err) => {
+                    console.error('[traverseArray]', err);
+                    return new Error('Unable to get item');
+                }
+            ),
+            TE.flatMap((data) =>
+                pipe(
+                    nameCodec.decode(data),
+                    E.mapLeft(() => new Error('Unable to decode')),
+                    TE.fromEither
+                )
+            )
         );
     }
 );
 
 const call = traverseArrayEff(array1);
 
-call().then((x) => console.log('[Result]:', x));
+call().then((x) => console.log('Result:', x));

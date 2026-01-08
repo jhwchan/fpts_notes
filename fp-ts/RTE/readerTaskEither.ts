@@ -19,6 +19,8 @@ import * as t from 'io-ts'
 
 export const nameCodec = t.strict({ name: t.string })
 
+export type CharacterName = t.TypeOf<typeof nameCodec>
+
 export interface Env1 {
     baseUrl: string
 }

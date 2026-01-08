@@ -1,5 +1,6 @@
 import * as A from 'fp-ts/lib/Array.js';
 import * as TE from 'fp-ts/lib/TaskEither.js';
+import * as O from 'fp-ts/lib/Option.js';
 import { pipe } from 'fp-ts/lib/function.js';
 
 /**
@@ -40,3 +41,13 @@ const sequenceTest = (nums: Array<number>) =>
     pipe(nums, A.map(createTE), A.sequence(TE.ApplicativeSeq));
 
 const x = sequenceTest(testNums)().then((x) => console.log(x));
+
+/**
+ * Sequence with options
+ * Works on all type classes switching the inner type class with the outer
+ * E.g. here an Option<TaskEither<E,A>> => TaskEither<E, Option<A>>
+ */
+
+const optionToTaskEither = O.sequence(TE.ApplicativePar);
+
+const taskEither = optionToTaskEither(O.some(TE.right(3)));

@@ -22,16 +22,18 @@ export interface UsernameBrand {
  * Second arguement: can be used to assert certain qualities that the value should have
  * Third arguement: name of the key in the brand
  */
-const UsernameCodec = t.brand(
+export const UsernameCodec = t.brand(
     t.string,
     (s): s is t.Branded<string, UsernameBrand> => s.includes('user-'),
     'Username'
 );
 
+export type UsernameCodecType = t.TypeOf<typeof UsernameCodec>;
+
 const validUsername = 'user-1';
 const inValidUsername = 'test';
 
-console.log({
-    valid: UsernameCodec.decode(validUsername),
-    invalid: UsernameCodec.decode(inValidUsername),
-});
+// console.log({
+//     valid: UsernameCodec.decode(validUsername),
+//     invalid: UsernameCodec.decode(inValidUsername),
+// });

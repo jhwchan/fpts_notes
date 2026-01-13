@@ -57,6 +57,7 @@ const getPerson =
 
 /**
  * The function that makes the effect
+ *  - This will be ran by the items above when plugged into the env
  * Effect in this context is the TaskEither that performs the impure action
  * In this case takes the url string and performs an API call to an outside source
  * These are the main buisness logic

@@ -2,6 +2,7 @@ import * as A from 'fp-ts/lib/Array.js';
 import * as TE from 'fp-ts/lib/TaskEither.js';
 import * as O from 'fp-ts/lib/Option.js';
 import { pipe } from 'fp-ts/lib/function.js';
+import { sequenceS } from 'fp-ts/lib/Apply.js';
 
 /**
  * Takes an Array<HKT<A>> and converts it into HKT<Array<A>>.
@@ -22,8 +23,7 @@ const testNums = [1, 2, 3, 4, 5];
 const createTE = TE.tryCatchK(
     async (num: number) => {
         const raw = await fetch(`${swapi}/people/${num}`);
-        const decoded = await raw.json();
-        return decoded;
+        return await raw.json();
     },
     (err) => {
         console.error('[createTE]', err);
@@ -35,12 +35,12 @@ const createTE = TE.tryCatchK(
  * Takes an array of nums
  * Maps it, therefore producing Array<TE>.
  * Then using A.sequence(TE.applicativeSeq)
- * - Converts the array of HKT into one TE containing an array instead.
+ * - Converts the Array<TE<Output of func, error>> into one TE<Array<output of function>,error>
  */
-const sequenceTest = (nums: Array<number>) =>
+const numToTE = (nums: Array<number>) =>
     pipe(nums, A.map(createTE), A.sequence(TE.ApplicativeSeq));
 
-const x = sequenceTest(testNums)().then((x) => console.log(x));
+numToTE(testNums)().then((x) => console.log(x));
 
 /**
  * Sequence with options
@@ -50,4 +50,19 @@ const x = sequenceTest(testNums)().then((x) => console.log(x));
 
 const optionToTaskEither = O.sequence(TE.ApplicativePar);
 
-const taskEither = optionToTaskEither(O.some(TE.right(3)));
+const TEofOption = optionToTaskEither(O.some(TE.right(3)));
+
+TEofOption().then((x) => console.log(x));
+
+/**
+ * Using sequence from the Apply library
+ * Can be used on objects
+ */
+
+const sequenceSExample = sequenceS(TE.ApplicativePar)({
+    person1: createTE(1),
+    person3: createTE(2),
+    person2: createTE(3),
+});
+
+sequenceSExample().then((x) => console.log(x));

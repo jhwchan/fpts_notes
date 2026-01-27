@@ -5,7 +5,7 @@ ap: <C, D>(f: HKT<F, (c: C) => D>) => (fc: HKT<F, C>) => HKT<F, D>
 
 ```
 
-- An extension on a functor allowing you to use n number of arguements
+- An extension on a functor allowing you to use n number of arguments
 - Via providing a function wrapped in the type constructor
 
 

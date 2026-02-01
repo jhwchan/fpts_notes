@@ -48,7 +48,7 @@ numToTE(testNums)().then((x) => console.log(x));
  * E.g. here an Option<TaskEither<E,A>> => TaskEither<E, Option<A>>
  */
 
-const optionToTaskEither = O.sequence(TE.ApplicativePar;
+const optionToTaskEither = O.sequence(TE.ApplicativePar);
 
 const TEofOption = optionToTaskEither(O.some(TE.right(3)));
 

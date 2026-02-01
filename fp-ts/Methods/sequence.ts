@@ -2,7 +2,7 @@ import * as A from 'fp-ts/lib/Array.js';
 import * as TE from 'fp-ts/lib/TaskEither.js';
 import * as O from 'fp-ts/lib/Option.js';
 import { pipe } from 'fp-ts/lib/function.js';
-import { sequenceS } from 'fp-ts/lib/Apply.js';
+import * as Ap from 'fp-ts/lib/Apply.js';
 
 /**
  * Takes an Array<HKT<A>> and converts it into HKT<Array<A>>.
@@ -48,7 +48,7 @@ numToTE(testNums)().then((x) => console.log(x));
  * E.g. here an Option<TaskEither<E,A>> => TaskEither<E, Option<A>>
  */
 
-const optionToTaskEither = O.sequence(TE.ApplicativePar);
+const optionToTaskEither = O.sequence(TE.ApplicativePar;
 
 const TEofOption = optionToTaskEither(O.some(TE.right(3)));
 
@@ -59,7 +59,7 @@ TEofOption().then((x) => console.log(x));
  * Can be used on objects
  */
 
-const sequenceSExample = sequenceS(TE.ApplicativePar)({
+const sequenceSExample = Ap.sequenceS(TE.ApplicativePar)({
     person1: createTE(1),
     person3: createTE(2),
     person2: createTE(3),

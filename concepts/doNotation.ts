@@ -4,6 +4,7 @@ import 'dotenv/config';
 
 /**
  * Do notation
+ * Allow user to bind values to the specified HKT (e.g. RTE, TE, Option ... ) in the pipe
  */
 
 const fetchApi = TE.tryCatchK(
@@ -22,14 +23,18 @@ const fetchApi = TE.tryCatchK(
 
 const example1 = (param: number) =>
     pipe(
-        //do inits an empty TE.TaskEither<never,{}>
+        /**
+         * Do inits an empty TE.TaskEither<never,{}>
+         */
         TE.Do,
         TE.apS('person', fetchApi(param, 'people')),
         /**
          * apS and bind do similar things
+         * - Adds key value pairs into the HKT allowing functions down the line to use these variables
+         * - Is an alternative to using flatMap
          * apS: indicates that the TE can run in parallel
          * bind: indicates that the previous TE must finish running before it is run
-         *  - it is dependent
+         *  - it is dependent on an output from the previous function
          */
         TE.bind('planet', () => fetchApi(param, 'planets')),
         TE.bind('vehicle', () => fetchApi(param, 'starships'))
@@ -37,7 +42,9 @@ const example1 = (param: number) =>
 
 const example2 = (param: number) =>
     pipe(
-        //do inits an empty TE.TaskEither<never,{}>
+        /**
+         * Do inits an empty TE.TaskEither<never,{}>
+         */
         TE.Do,
         TE.apS('person', fetchApi(param, 'people')),
         /**
